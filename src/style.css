@@ -107,7 +107,7 @@ header.topHud {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-rows: auto minmax(0, 1fr) minmax(220px, 34vh);
+  grid-template-rows: auto minmax(0, 1fr) 168px;
   gap: 8px;
   min-height: 0;
   overflow: hidden;
@@ -153,7 +153,9 @@ header.topHud {
 .board {
   grid-column: 1 / -1;
   grid-row: 3;
-  min-height: 0;
+  height: 168px;
+  min-height: 168px;
+  max-height: 168px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -249,18 +251,21 @@ header.topHud {
   font-variant-numeric: tabular-nums;
 }
 
-.stageCol { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; grid-row: 2; }
+.stageCol { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; grid-row: 2; }
 .inspector { grid-row: 2; max-height: 100%; overflow: auto; }
 .stage.arenaStage {
+  position: relative;
+  overflow: hidden;
   max-width: none;
   width: 100%;
-  aspect-ratio: 16 / 10;
-  min-height: 360px;
+  height: 100%;
+  min-height: 0;
   background: radial-gradient(ellipse at 50% 30%, #0d1a12 0%, #050806 70%);
 }
 .arena3d {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 }
 .arena3d canvas {
   display: block;
@@ -299,8 +304,10 @@ header.topHud {
   left: 10px;
   right: 10px;
   top: 10px;
+  bottom: 10px;
   z-index: 28;
   pointer-events: none;
+  overflow: auto;
 }
 .questCard {
   pointer-events: auto;
@@ -308,7 +315,7 @@ header.topHud {
   border: 2px solid var(--green);
   padding: 12px 14px 14px;
   box-shadow: 0 12px 40px #000c;
-  max-height: 58%;
+  max-height: 100%;
   overflow: auto;
 }
 .questCard.hot { border-color: #8cffb0; }
@@ -346,7 +353,15 @@ header.topHud {
   gap: 8px;
   margin-top: 12px;
 }
-.questBtns.sip { grid-template-columns: 1fr; }
+.questBtns.sip {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.questBtns.sip button small {
+  display: block;
+  margin-top: 4px;
+  font-weight: 600;
+  color: #cfe0d4;
+}
 .questBtns button {
   min-height: 44px;
   border: 1px solid #2a5a3c;
@@ -660,36 +675,38 @@ dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 12px; }
 .anatomy {
   border: 1px solid var(--line);
   background: var(--panel);
-  padding: 14px 16px 16px;
+  padding: 8px 10px 10px;
+  min-height: 0;
 }
 .anatomyTop {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 8px;
 }
-.anatomyTop strong { display: block; font-size: 18px; margin-top: 2px; }
-.anatomyNote { margin: 0; max-width: 640px; color: #c5d0c8; font-size: 14px; line-height: 1.5; }
-.sipRow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.anatomyTop strong { display: block; font-size: 16px; margin-top: 0; }
+.anatomyNote { margin: 0; max-width: none; color: #c5d0c8; font-size: 13px; line-height: 1.4; }
+.sipRow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .sipRow button {
   text-align: left;
   background: #0a0f0c;
   border: 1px solid var(--line);
   color: var(--ink);
-  padding: 10px;
+  padding: 8px;
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px;
 }
-.sipRow button small { display: block; color: #c5d0c8; font-size: 12px; margin-top: 4px; }
+.sipRow button small { display: block; color: #c5d0c8; font-size: 11px; margin-top: 2px; }
 .sipRow button.on { border-color: var(--green); background: #102018; }
 .sipBody {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 8px;
 }
-.sipBody p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; color: #e4eee6; }
+.sipBody p { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: #e4eee6; }
 .tag {
   font-family: "IBM Plex Mono", monospace;
   font-size: 9px;
@@ -885,7 +902,6 @@ dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 12px; }
 .authCard .modeSwitch { margin-top: 8px; grid-column: auto; width: 100%; }
 
 footer { text-align: center; padding: 2px 4px 0; font-size: 12px; }
-.anatomy { display: none; }
 
 @media (max-width: 1100px) {
   .workspace { grid-template-columns: minmax(0, 1fr) 260px; }
@@ -907,20 +923,28 @@ footer { text-align: center; padding: 2px 4px 0; font-size: 12px; }
   .live { font-size: 9px; width: auto; justify-self: end; }
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr) minmax(200px, 38vh);
+    grid-template-rows: auto minmax(0, 1fr) 168px;
     overflow: hidden;
     padding: 6px;
   }
   .stampBar { font-size: 8px; letter-spacing: 0.08em; }
-  .sideCol { display: none; }
-  .stageCol { grid-row: 2; }
-  .board { grid-row: 3; }
-  .stage {
-    max-width: 100%;
-    aspect-ratio: auto;
-    min-height: 0;
-    height: 100%;
+  .sideCol {
+    display: flex;
+    grid-row: 2;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
   }
+  .stageCol { grid-row: 2; }
+  .board { grid-row: 3; height: 168px; min-height: 168px; max-height: 168px; }
+  .stage.arenaStage {
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  .questBtns.sip { grid-template-columns: 1fr; }
   .coreStats { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
   .coreStats div { padding: 8px 8px; }
   .coreStats b { font-size: 13px; }

@@ -15,7 +15,7 @@ export default function Auth({ onIn }) {
       const user = await enterX(name);
       onIn(user);
     } catch (ex) {
-      setErr(ex.message || "Olmadı.");
+      setErr(ex.message || "Could not sign in.");
     } finally {
       setBusy(false);
     }
@@ -26,16 +26,16 @@ export default function Auth({ onIn }) {
       <div className="authCard">
         <img className="authLogo" src={LOGO} alt="StandX" />
         <Stander pose="front" className="authMascot" />
-        <h1>Giriş</h1>
-        <p className="authAsk">X kullanıcınızın ismini yazınız.</p>
-        <p>Yazıp girince tarayıcı bu kişiyi kaydeder. Sonraki açılışta aynı hesapla gelirsin.</p>
+        <h1>Sign in</h1>
+        <p className="authAsk">Enter your X username.</p>
+        <p>The browser saves this person. Next visit opens the same account.</p>
         <form onSubmit={submit}>
           <label>
-            X kullanıcınızın ismi
+            X username
             <input
               value={name}
               onChange={(e) => setName(e.target.value.replace(/^@/, ""))}
-              placeholder="@isminiz"
+              placeholder="@handle"
               autoComplete="username"
               minLength={3}
               maxLength={20}
@@ -45,7 +45,7 @@ export default function Auth({ onIn }) {
           </label>
           {err && <p className="authErr">{err}</p>}
           <button type="submit" className="hudPlay" disabled={busy}>
-            {busy ? "…" : "GİRİŞ YAP VE KAYDET"}
+            {busy ? "…" : "ENTER AND SAVE"}
           </button>
         </form>
       </div>

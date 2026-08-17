@@ -26,7 +26,7 @@ export async function handleAuth(req, res) {
       const out = await me(token);
       return send(res, out, out.error ? out.status : 200);
     }
-    if (req.method !== "POST") return send(res, { error: "Method yok." }, 405);
+    if (req.method !== "POST") return send(res, { error: "Method not allowed." }, 405);
     const body = await readBody(req);
     const action = body.action || "login";
     if (action === "logout") {
@@ -46,19 +46,19 @@ export async function handleAuth(req, res) {
     if (out.error) return send(res, out, out.status);
     return send(res, { user: out.user, token: out.token }, 200, cookieHeader(out.token));
   } catch {
-    return send(res, { error: "İstek okunamadı." }, 400);
+    return send(res, { error: "Could not read request." }, 400);
   }
 }
 
 export async function handleBoard(req, res) {
   try {
     if (req.method === "GET") return send(res, await board());
-    if (req.method !== "POST") return send(res, { error: "Method yok." }, 405);
+    if (req.method !== "POST") return send(res, { error: "Method not allowed." }, 405);
     const body = await readBody(req);
     const out = await addScore(sessionToken(req), body.score);
     return send(res, out, out.error ? out.status : 200);
   } catch {
-    return send(res, { error: "İstek okunamadı." }, 400);
+    return send(res, { error: "Could not read request." }, 400);
   }
 }
 

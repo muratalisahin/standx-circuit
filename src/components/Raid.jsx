@@ -4,7 +4,7 @@ import DepthXray from "./DepthXray.jsx";
 import Stander, { LOGO, standerPose } from "./Stander.jsx";
 import { BEST_KEY } from "../lib/board.js";
 import { submitScore } from "../lib/session.js";
-import { advanceBoss, makeIntercept, rankFor, resolveHit } from "../lib/intercepts.js";
+import { ROUND_SIZE, advanceBoss, makeIntercept, newDeck, rankFor, resolveHit } from "../lib/intercepts.js";
 const QUESTION_POINTS = 10;
 const LIVES = 2;
 
@@ -23,6 +23,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
   const snapRef = useRef({});
   const failRef = useRef(() => {});
   const attemptRef = useRef(() => {});
+  const deckRef = useRef([]);
 
   const symbols = overview?.symbols || [];
   const rank = rankFor(score);
@@ -34,20 +35,41 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
   interceptRef.current = intercept;
 
   function spawn(nextWave) {
-    const row = makeIntercept({
-      symbols: snapRef.current.symbols,
-      book: snapRef.current.book,
-      wave: nextWave,
-      selected: snapRef.current.selected,
-    });
+    if (nextWave > ROUND_SIZE) {
+      finishRun();
+      return;
+    }
+    if (!deckRef.current.length) deckRef.current = newDeck();
+    const row = makeIntercept(deckRef.current);
     setIntercept(row);
     setLeft(row.seconds);
     setWave(nextWave);
-    onSip(row.sip?.id || snapRef.current.sip);
+    onSip(row.target && row.mode === "tap-sip" ? row.target : snapRef.current.sip);
+  }
+
+  function finishRun() {
+    const finalScore = snapRef.current.score;
+    setOver(true);
+    setRunning(false);
+    setIntercept(null);
+    setBest((b) => {
+      const n = Math.max(b, finalScore);
+      localStorage.setItem(BEST_KEY, String(n));
+      submitScore(finalScore)
+        .then(() => window.dispatchEvent(new Event("standx-board")))
+        .catch(() => window.dispatchEvent(new Event("standx-board")));
+      return n;
+    });
+  }
+
+  function nextOrFinish() {
+    if (snapRef.current.wave >= ROUND_SIZE) finishRun();
+    else spawn(snapRef.current.wave + 1);
   }
 
   function start() {
     busyRef.current = false;
+    deckRef.current = newDeck();
     setScore(0);
     setCombo(0);
     setMargin(LIVES);
@@ -61,7 +83,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
   function fail(why) {
     if (busyRef.current) return;
     busyRef.current = true;
-    setFlash(why || "MARGIN HIT");
+    setFlash(why || "WRONG");
     setCombo(0);
     const next = snapRef.current.margin - 1;
     setMargin(next);
@@ -69,21 +91,22 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
       busyRef.current = false;
       setFlash("");
       if (next <= 0) {
-        const finalScore = snapRef.current.score;
-        setOver(true);
-        setRunning(false);
-        setIntercept(null);
-        setBest((b) => {
-          const n = Math.max(b, finalScore);
-          localStorage.setItem(BEST_KEY, String(n));
-          submitScore(finalScore)
-            .then(() => window.dispatchEvent(new Event("standx-board")))
-            .catch(() => window.dispatchEvent(new Event("standx-board")));
-          return n;
-        });
+        finishRun();
       } else {
         spawn(snapRef.current.wave + 1);
       }
+    }, 720);
+  }
+
+  function timesUp() {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setFlash("TIME UP");
+    setCombo(0);
+    window.setTimeout(() => {
+      busyRef.current = false;
+      setFlash("");
+      nextOrFinish();
     }, 720);
   }
 
@@ -92,12 +115,12 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
     const gained = QUESTION_POINTS;
     setScore((s) => s + gained);
     setCombo((c) => c + 1);
-    setFlash(`+${gained} puan`);
+    setFlash(`+${gained} pts`);
     busyRef.current = true;
     window.setTimeout(() => {
       busyRef.current = false;
       setFlash("");
-      spawn(snapRef.current.wave + 1);
+      nextOrFinish();
     }, 640);
   }
 
@@ -114,7 +137,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
       if (!done) {
         setScore((s) => s + QUESTION_POINTS);
         setIntercept(next);
-        setFlash(`+${QUESTION_POINTS} puan`);
+        setFlash(`+${QUESTION_POINTS} pts`);
         window.setTimeout(() => setFlash(""), 400);
         return;
       }
@@ -157,16 +180,15 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
   useEffect(() => {
     if (!running || over || !intercept) return;
     const id = setInterval(() => {
-      setLeft((ms) => {
-        if (ms <= 1) {
-          if (!busyRef.current) failRef.current("TIMEOUT — CURRENT DROPPED");
-          return 0;
-        }
-        return ms - 1;
-      });
+      setLeft((ms) => (ms <= 1 ? 0 : ms - 1));
     }, 1000);
     return () => clearInterval(id);
   }, [running, over, intercept]);
+
+  useEffect(() => {
+    if (!running || over || !intercept || left > 0) return;
+    timesUp();
+  }, [left, running, over, intercept]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -187,10 +209,10 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
   }, [running]);
 
   const radio = useMemo(() => {
-    if (over) return `Oyun bitti. Rütbe ${rank.id}. Tekrar dene.`;
-    if (!running) return "Yeşil BAŞLAT’a bas. Sonra 3D halkadaki canlı piyasalara tıklayarak görevleri çöz.";
+    if (over) return `Run over. Rank ${rank.id}. Try again.`;
+    if (!running) return `15 questions from a 100-item pool. TRUE / FALSE, or pick what each SIP is about.`;
     if (flash) return flash;
-    return intercept?.hint || "3D halkada cevap ver.";
+    return intercept?.hint || "Answer in the question card.";
   }, [over, running, flash, intercept, rank.id]);
 
   const modeNow = active?.mode || intercept?.mode;
@@ -199,16 +221,16 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
       {over ? (
         <>
           <div className="questTop">
-            <b>BİTTİ · {rank.id}</b>
-            <em>{score} puan</em>
+            <b>DONE · {rank.id}</b>
+            <em>{score} pts</em>
           </div>
           <p>{rank.line}</p>
-          <button type="button" className="hudPlay" onClick={start}>TEKRAR OYNA</button>
+          <button type="button" className="hudPlay" onClick={start}>PLAY AGAIN</button>
         </>
       ) : (
         <>
           <div className="questTop">
-            <b>DALGA {wave} · {intercept.kind}</b>
+            <b>{wave}/{ROUND_SIZE} · {intercept.kind}</b>
             <em>{left}s</em>
           </div>
           <div className="raidBar">
@@ -218,31 +240,32 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
           <small>{intercept.hint}</small>
           {modeNow === "tap-side" && (
             <div className="questBtns">
-              <button type="button" className="bid" onClick={() => attempt({ side: "BID" })}>ALIŞ (BID)</button>
-              <button type="button" className="ask" onClick={() => attempt({ side: "ASK" })}>SATIŞ (ASK)</button>
+              <button type="button" className="bid" onClick={() => attempt({ side: "BID" })}>BID</button>
+              <button type="button" className="ask" onClick={() => attempt({ side: "ASK" })}>ASK</button>
             </div>
           )}
           {modeNow === "tap-sip" && sipOptions && (
             <div className="questBtns sip">
               {sipOptions.map((s) => (
                 <button key={s.id} type="button" onClick={() => attempt({ sip: s.id })}>
-                  {s.id} · {s.name}
+                  {s.id}
+                  <small>{s.name}</small>
                 </button>
               ))}
             </div>
           )}
           {modeNow === "truth" && (
             <div className="questBtns">
-              <button type="button" className="ok" onClick={() => attempt({ kind: "core" })}>DOĞRU</button>
-              <button type="button" className="ask" onClick={() => attempt({ kind: "mod", symbol: selected || "BTC-USD" })}>YANLIŞ</button>
+              <button type="button" className="ok" onClick={() => attempt({ kind: "core" })}>TRUE</button>
+              <button type="button" className="ask" onClick={() => attempt({ kind: "mod", symbol: selected || "BTC-USD" })}>FALSE</button>
             </div>
           )}
           {(modeNow === "tap-core") && (
             <div className="questBtns">
-              <button type="button" className="ok" onClick={() => attempt({ kind: "core" })}>STANDER / ÇEKİRDEK</button>
+              <button type="button" className="ok" onClick={() => attempt({ kind: "core" })}>STANDER / CORE</button>
             </div>
           )}
-          {modeNow === "tap-mod" && <small className="questHint">Cevap: 3D sahnedeki piyasaya tıkla.</small>}
+          {modeNow === "tap-mod" && <small className="questHint">Answer: tap a market on the 3D ring.</small>}
         </>
       )}
     </div>
@@ -254,8 +277,8 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
     <aside className="inspector raidPanel">
       <div className="inspectHead">
         <div>
-          <span className="kicker">STANDX OYUN</span>
-          <h2>{running ? `DALGA ${wave}` : "BAŞLAT"}</h2>
+          <span className="kicker">STANDX RAID</span>
+          <h2>{running ? `${wave} / ${ROUND_SIZE}` : "START"}</h2>
         </div>
         <Stander pose={pose} className="inspectMascot" alt="" />
       </div>
@@ -270,7 +293,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
           <b>{combo}×</b>
         </div>
         <div>
-          <span>CAN</span>
+          <span>LIVES</span>
           <b className={margin <= 1 ? "down" : ""}>
             {"●".repeat(Math.max(0, margin))}
             {"○".repeat(Math.max(0, LIVES - margin))}
@@ -290,12 +313,12 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
             <Stander pose="front" alt="" />
           </div>
           <p>
-            1) Üstten <em>OYUN</em>’a bas (buradasın). 2) Aşağıdaki yeşil <em>BAŞLAT</em>’a bas.
-            Görev canlı 3D halkada çıkar: en kalın boru, en büyük OI, funding, kitap, SIP. Doğruysa Stander’a (çekirdek), yalansa herhangi bir piyasaya tıkla.
+            1) You are in <em>PLAY</em>. 2) Hit green <em>START</em>.
+            Each run is 15 random questions from a 100-item pool (5 SIP + 10 true/false). For SIP, pick what SIP-1…SIP-5 is about from the chips below.
           </p>
           <p className="tiny">Best {best} · Spark → Maker → Shield → Circuit → Universal</p>
           <button type="button" className="share" onClick={start}>
-            BAŞLAT
+            START
           </button>
         </div>
       )}
@@ -340,7 +363,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
 
           {(active?.mode === "truth" || intercept.mode === "truth" || active?.mode === "tap-core" || intercept.mode === "tap-core") && (
             <button type="button" className="share" onClick={() => attempt({ kind: "core" })}>
-              DUSD ÇEKİRDEĞE TIKLA
+              TAP DUSD CORE
             </button>
           )}
         </>
@@ -354,12 +377,12 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
             Score {score} · best {Math.max(best, score)} · last wave {wave}
           </p>
           <button type="button" className="share" onClick={start}>
-            TEKRAR OYNA
+            PLAY AGAIN
           </button>
         </div>
       )}
 
-      <p className="tiny">Cevap üstteki soru kutusunda ve 3D sahnede. Yatırım tavsiyesi değil.</p>
+      <p className="tiny">Answer in the question card. Not investment advice.</p>
     </aside>
     </>
   );

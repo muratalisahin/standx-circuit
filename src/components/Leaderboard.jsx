@@ -24,7 +24,7 @@ export default function Leaderboard({ user, gameScore = 0, playing = false }) {
           setFail("");
         }
       } catch {
-        if (!stop) setFail("Sıralama sunucudan gelmedi.");
+        if (!stop) setFail("Leaderboard did not load from the server.");
       }
     };
     pull();
@@ -40,23 +40,23 @@ export default function Leaderboard({ user, gameScore = 0, playing = false }) {
   return (
     <section className="board">
       <div className="boardHead">
-        <strong>LİDERLİK</strong>
+        <strong>LEADERBOARD</strong>
         <span>
           @{user?.name || "—"}
-          {playing ? ` · ${gameScore} puan` : ""}
+          {playing ? ` · ${gameScore} pts` : ""}
           {" · "}
-          {Math.max(board.users, players.length)} kişi
+          {Math.max(board.users, players.length)} players
         </span>
       </div>
       {fail && <p className="boardYou authErr">{fail}</p>}
       <ol className="boardList">
-        {players.length === 0 && <li className="empty">Henüz kimse yok.</li>}
+        {players.length === 0 && <li className="empty">No players yet.</li>}
         {players.map((r) => (
           <li key={`${r.rank}-${r.name}`}>
             <div className={`run ${r.name === user?.name ? "on" : ""}`}>
               <em>{r.rank}</em>
               <b>@{r.name}</b>
-              <strong>{r.score} puan</strong>
+              <strong>{r.score} pts</strong>
             </div>
           </li>
         ))}

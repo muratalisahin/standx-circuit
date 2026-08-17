@@ -55,8 +55,8 @@ export default function App() {
     const measure = () => {
       const r = el.getBoundingClientRect();
       const w = Math.max(260, Math.round(r.width));
-      const h = Math.max(260, Math.round(r.height || r.width));
-      setSize({ w, h });
+      const h = Math.max(180, Math.round(r.height || r.width));
+      setSize((prev) => (Math.abs(prev.w - w) < 8 && Math.abs(prev.h - h) < 8 ? prev : { w, h }));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -200,7 +200,7 @@ export default function App() {
   if (!authReady) {
     return (
       <div className="authShell">
-        <span>Oturum bakılıyor…</span>
+        <span>Checking session…</span>
       </div>
     );
   }
@@ -231,15 +231,15 @@ export default function App() {
               });
             }}
           >
-            Çıkış
+            Sign out
           </button>
         </div>
-        <div className="modeSwitch" role="tablist" aria-label="Mod">
+        <div className="modeSwitch" role="tablist" aria-label="Mode">
           <button type="button" className={mode === "watch" ? "on" : ""} onClick={() => { setMode("watch"); setRaidOn(false); }}>
-            İZLE
+            WATCH
           </button>
           <button type="button" className={mode === "raid" ? "on" : ""} onClick={() => setMode("raid")}>
-            OYUN
+            PLAY
           </button>
         </div>
       </header>
@@ -258,7 +258,7 @@ export default function App() {
           <div className="stampBar">
             <img className="stampLogo" src={LOGO} alt="" />
             <span>STANDX CIRCUIT</span>
-            <span>{mode === "raid" ? (raidOn ? "OYUN AÇIK" : "OYUN") : selected || "ENGINE"}</span>
+            <span>{mode === "raid" ? (raidOn ? "RAID LIVE" : "PLAY") : selected || "ENGINE"}</span>
             <span>DUSD CORE · LIVE · NOT INVESTMENT ADVICE</span>
           </div>
           <div className="stageCol">
@@ -302,7 +302,7 @@ export default function App() {
                       setRaidOn(true);
                     }}
                   >
-                    OYUNU BAŞLAT
+                    START RAID
                   </button>
                 </div>
               )}
@@ -310,8 +310,8 @@ export default function App() {
             </div>
             <p className="keys">
               {mode === "raid"
-                ? "Sürükle: kamerayı çevir · tıkla: cevap ver · C = çekirdek"
-                : "Sürükle: kamerayı çevir · tıkla: piyasayı seç"}
+                ? "Drag: orbit camera · TRUE / FALSE or SIP chips · C = core"
+                : "Drag: orbit camera · click: select a market"}
             </p>
           </div>
 
@@ -380,7 +380,7 @@ export default function App() {
             <button type="button" className="share" onClick={() => { setSharing(true); setTimeout(share, 40); }}>
               STAMP CIRCUIT PNG
             </button>
-            <p className="tiny">Sayılar StandX public market, depth ve kline’dan. Vault TVL yok. Yatırım tavsiyesi değil.</p>
+            <p className="tiny">Figures from StandX public market, depth, and kline. No vault TVL. Not investment advice.</p>
           </aside>
           )}
           </div>
@@ -395,7 +395,7 @@ export default function App() {
       <Anatomy open={sip} onOpen={setSip} />
       <footer>
         <Stander pose="three" className="footMascot" alt="" />
-        StandX Circuit · {mode === "raid" ? "canlı halkada oyun" : "DUSD çekirdek · protokol haritası, vault explorer değil"} · yatırım tavsiyesi değil
+        StandX Circuit · {mode === "raid" ? "raid on the live ring" : "DUSD core · protocol map, not a vault explorer"} · not investment advice
         {sharing ? " · rendering stamp…" : ""}
       </footer>
     </div>

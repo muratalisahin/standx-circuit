@@ -192,11 +192,14 @@ export default function Arena3D({ layout, selected, onSelect, ticks, sip, raid, 
     renderer.domElement.addEventListener("pointerdown", onClick);
 
     function fit() {
-      const w = Math.max(2, host.clientWidth);
-      const h = Math.max(2, host.clientHeight);
+      const w = Math.max(2, Math.floor(host.clientWidth));
+      const h = Math.max(2, Math.floor(host.clientHeight));
+      if (w === camera.userData.w && h === camera.userData.h) return;
+      camera.userData.w = w;
+      camera.userData.h = h;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(w, h, false);
       composer.setSize(w, h);
       bloom.setSize(w, h);
     }

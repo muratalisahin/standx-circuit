@@ -8,10 +8,10 @@ export default function Anatomy({ open, onOpen }) {
     <section className="anatomy">
       <div className="anatomyTop">
         <div>
-          <span className="kicker">PROTOKOL</span>
+          <span className="kicker">PROTOCOL</span>
           <strong>SIP-1 — SIP-5</strong>
         </div>
-        <p className="anatomyNote">Bir SIP’e bas; kural solda, bu ekranın gerçekten gösterdiği sağda. Vault explorer değil.</p>
+        <p className="anatomyNote">{active.id}: {active.lore}</p>
       </div>
       <div className="sipRow">
         {SIPS.map((s) => (
@@ -30,11 +30,11 @@ export default function Anatomy({ open, onOpen }) {
       </div>
       <div className="sipBody">
         <div>
-          <span className="tag lore">KURAL</span>
+          <span className="tag lore">RULE</span>
           <p>{active.lore}</p>
         </div>
         <div>
-          <span className="tag live">CANLI VERİ</span>
+          <span className="tag live">LIVE DATA</span>
           <p>{active.live}</p>
         </div>
       </div>

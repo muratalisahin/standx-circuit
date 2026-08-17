@@ -199,16 +199,16 @@ export async function register({ name, email, password, password2 }) {
   const n = cleanName(name);
   const e = cleanEmail(email);
   const p = String(password || "");
-  if (n.length < 3) return { error: "Kullanıcı adı en az 3 karakter olsun.", status: 400 };
-  if (!validEmail(e)) return { error: "Geçerli bir e-posta yaz.", status: 400 };
-  if (p.length < 6) return { error: "Şifre en az 6 karakter olsun.", status: 400 };
-  if (password2 != null && p !== String(password2)) return { error: "Şifreler eşleşmiyor.", status: 400 };
+  if (n.length < 3) return { error: "Username must be at least 3 characters.", status: 400 };
+  if (!validEmail(e)) return { error: "Enter a valid email.", status: 400 };
+  if (p.length < 6) return { error: "Password must be at least 6 characters.", status: 400 };
+  if (password2 != null && p !== String(password2)) return { error: "Passwords do not match.", status: 400 };
   const db = await load();
   if (db.users.some((u) => u.name.toLowerCase() === n.toLowerCase())) {
-    return { error: "Bu kullanıcı adı alınmış.", status: 409 };
+    return { error: "That username is taken.", status: 409 };
   }
   if (db.users.some((u) => (u.email || "").toLowerCase() === e)) {
-    return { error: "Bu e-posta zaten kayıtlı. Giriş yap.", status: 409 };
+    return { error: "That email is already registered. Sign in.", status: 409 };
   }
   const salt = randomBytes(16).toString("hex");
   const user = {
@@ -234,12 +234,12 @@ export async function login({ email, name, password }) {
   const user = db.users.find(
     (u) => (e && u.email === e) || (n && u.name.toLowerCase() === n.toLowerCase())
   );
-  if (!user) return { error: "X adı veya şifre yanlış.", status: 401 };
+  if (!user) return { error: "X name or password is wrong.", status: 401 };
   const next = hashPass(p, user.salt);
   const a = Buffer.from(user.hash, "hex");
   const b = Buffer.from(next, "hex");
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return { error: "X adı veya şifre yanlış.", status: 401 };
+    return { error: "X name or password is wrong.", status: 401 };
   }
   user.lastLogin = Date.now();
   const token = await issueSession(db, user);
@@ -248,7 +248,7 @@ export async function login({ email, name, password }) {
 
 export async function enterByX(name) {
   const n = cleanName(name);
-  if (n.length < 3) return { error: "X kullanıcınızın ismini yazınız.", status: 400 };
+  if (n.length < 3) return { error: "Enter your X username.", status: 400 };
   const db = await load();
   let user = db.users.find((u) => u.name.toLowerCase() === n.toLowerCase());
   if (!user) {
@@ -270,7 +270,7 @@ export async function enterByX(name) {
 export async function me(token) {
   const db = await load();
   const user = userByToken(db, token);
-  if (!user) return { error: "Oturum yok. Giriş yap.", status: 401 };
+  if (!user) return { error: "No session. Sign in.", status: 401 };
   return { user: publicUser(user) };
 }
 
@@ -286,9 +286,9 @@ export async function logoutSession(token) {
 export async function addScore(token, score) {
   const db = await load();
   const user = userByToken(db, token);
-  if (!user) return { error: "Giriş gerekli.", status: 401 };
+  if (!user) return { error: "Sign in required.", status: 401 };
   const n = Number(score) || 0;
-  if (n < 0 || n > 100000) return { error: "Geçersiz puan.", status: 400 };
+  if (n < 0 || n > 100000) return { error: "Invalid score.", status: 400 };
   db.runs.push({ userId: user.id, name: user.name, score: n, at: Date.now() });
   db.runs.sort((a, b) => b.score - a.score || b.at - a.at);
   db.runs = db.runs.slice(0, 100);
