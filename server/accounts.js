@@ -296,6 +296,33 @@ export async function addScore(token, score) {
   return { ok: true, board: boardFrom(db) };
 }
 
+export async function resetScores({ wipeUsers = false } = {}) {
+  const db = await load();
+  const cleared = db.runs.length;
+  const users = wipeUsers ? 0 : db.users.length;
+  if (wipeUsers) {
+    db.users = [];
+    db.sessions = {};
+  }
+  db.runs = [];
+  await save(db);
+  try {
+    if (existsSync(file)) {
+      const local = wipeUsers ? empty() : { ...parseDb(readFileSync(file, "utf8")), runs: [] };
+      if (wipeUsers) {
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(file, JSON.stringify(empty(), null, 2));
+      } else {
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(file, JSON.stringify(local, null, 2));
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return { ok: true, cleared, users };
+}
+
 export async function board() {
   return { board: boardFrom(await load()) };
 }
