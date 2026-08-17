@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { drawFlow, seedFlow, stepFlow } from "../lib/flow.js";
 import { pct, px } from "../lib/format.js";
+import Stander from "./Stander.jsx";
 
-export default function Circuit({ layout, selected, onSelect, ticks, sip, imbalance }) {
+export default function Circuit({ layout, selected, onSelect, ticks, sip, imbalance, raid }) {
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const layoutRef = useRef(layout);
@@ -53,7 +54,7 @@ export default function Circuit({ layout, selected, onSelect, ticks, sip, imbala
   const glow = compact ? coreR * 1.25 : coreR + 36;
 
   return (
-    <div className={`circuitStage ${sipClass} ${compact ? "compact" : ""}`} style={{ width, height }}>
+    <div className={`circuitStage ${sipClass} ${compact ? "compact" : ""} ${raid ? "raidPlay" : ""}`} style={{ width, height }}>
       <canvas ref={canvasRef} className="flowLayer" />
       <svg className="pipeLayer" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
         <defs>
@@ -118,8 +119,8 @@ export default function Circuit({ layout, selected, onSelect, ticks, sip, imbala
         style={{ left: cx, top: cy, width: coreR * 2, height: coreR * 2 }}
         onClick={() => onSelect(null)}
       >
-        <img className="coreMascotImg" src="/images/stander-front.png" alt="Stander, the StandX mascot" />
-        <span>STANDER · DUSD</span>
+        <Stander pose={raid ? "focus" : "front"} className="coreMascotImg" />
+        <span>{raid ? "HIT CORE" : "STANDER · DUSD"}</span>
       </button>
     </div>
   );

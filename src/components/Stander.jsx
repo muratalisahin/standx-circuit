@@ -1,23 +1,28 @@
-import React from "react";
+export const LOGO = "/images/standx-logo.png";
+export const MARK = "/images/standx-mark.png";
 
-export default function Stander({ size = "md" }) {
-  return (
-    <div className={`standerScene stander-${size}`} aria-hidden="true">
-      <div className="stander" role="img" aria-label="Stander, the StandX mascot">
-        <div className="standerHighlight" />
-        <div className="standerStalk" />
-        <div className="standerLeaf" />
-        <div className="standerArm standerArmL"><span /></div>
-        <div className="standerArm standerArmR"><span /></div>
-        <div className="standerEye">
-          <span className="standerIris" />
-          <i className="standerGlint a" />
-          <i className="standerGlint b" />
-        </div>
-        <div className="standerMouth" />
-        <div className="standerLeg standerLegL"><i /></div>
-        <div className="standerLeg standerLegR"><i /></div>
-      </div>
-    </div>
-  );
+export const STANDER = {
+  front: "/images/stander-front.png",
+  three: "/images/stander-34.png",
+  side: "/images/stander-side.png",
+  back: "/images/stander-back.png",
+  focus: "/images/stander-focus.png",
+  think: "/images/stander-think.png",
+  formal: "/images/stander-formal.png",
+  cozy: "/images/stander-cozy.png",
+};
+
+export default function Stander({ pose = "front", className = "", alt = "Stander, the StandX mascot" }) {
+  return <img className={className} src={STANDER[pose] || STANDER.front} alt={alt} />;
+}
+
+export function standerPose({ running, over, flash, kind, rankId }) {
+  if (over) return rankId === "UNIVERSAL" ? "formal" : "think";
+  if (!running) return "front";
+  if (flash?.includes("LOCKED")) return "cozy";
+  if (flash?.includes("WRONG") || flash?.includes("TIMEOUT")) return "think";
+  if (kind?.includes("BOSS")) return "formal";
+  if (kind?.includes("SCAN") || kind?.includes("SIP")) return "think";
+  if (kind?.includes("X-RAY") || kind?.includes("PIPE") || kind?.includes("COIL")) return "focus";
+  return "three";
 }
