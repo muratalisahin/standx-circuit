@@ -306,10 +306,19 @@ function boardFrom(db) {
     const prev = best.get(run.userId);
     if (!prev || run.score > prev.score) best.set(run.userId, run);
   }
-  const top = [...best.values()].sort((a, b) => b.score - a.score || b.at - a.at).slice(0, 25);
+  const people = (db.users || []).map((u) => {
+    const run = best.get(u.id);
+    return {
+      name: u.name,
+      score: run?.score || 0,
+      at: run?.at || u.lastLogin || u.created || 0,
+    };
+  });
+  people.sort((a, b) => b.score - a.score || b.at - a.at);
+  const top = people.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.name, score: r.score, at: r.at }));
   return {
     users: db.users.length,
-    top: top.map((r, i) => ({ rank: i + 1, name: r.name, score: r.score, at: r.at })),
+    top,
     recent: db.runs.slice(0, 15).map((r) => ({ name: r.name, score: r.score, at: r.at })),
   };
 }
