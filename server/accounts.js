@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const dir = join(root, "data");
+const dir = process.env.VERCEL ? join("/tmp", "standx-data") : join(root, "data");
 const file = join(dir, "accounts.json");
 const COOKIE = "standx_session";
 const WEEK = 60 * 60 * 24 * 30;
@@ -113,7 +113,10 @@ async function save(db) {
       },
       body: JSON.stringify({ id: STORE_ID, data: db, updated_at: new Date().toISOString() }),
     });
-    if (!r.ok) throw new Error("Supabase kayıt hatası");
+    if (!r.ok) {
+      const detail = await r.text().catch(() => "");
+      throw new Error(detail ? "Could not save account." : "Could not save account.");
+    }
     return;
   }
   const kv = redis();

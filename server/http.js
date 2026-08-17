@@ -8,15 +8,23 @@ function send(res, data, status = 200, cookie) {
 }
 
 async function readBody(req) {
-  if (req.body != null) {
-    if (typeof req.body === "string") return req.body ? JSON.parse(req.body) : {};
-    return req.body;
+  try {
+    if (req.body != null) {
+      if (Buffer.isBuffer(req.body)) {
+        const raw = req.body.toString("utf8");
+        return raw ? JSON.parse(raw) : {};
+      }
+      if (typeof req.body === "string") return req.body ? JSON.parse(req.body) : {};
+      if (typeof req.body === "object" && !Array.isArray(req.body)) return req.body;
+    }
+    const chunks = [];
+    for await (const c of req) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
+    const raw = Buffer.concat(chunks).toString("utf8");
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
   }
-  const chunks = [];
-  for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw) return {};
-  return JSON.parse(raw);
 }
 
 export async function handleAuth(req, res) {
@@ -45,8 +53,8 @@ export async function handleAuth(req, res) {
           : await login(body);
     if (out.error) return send(res, out, out.status);
     return send(res, { user: out.user, token: out.token }, 200, cookieHeader(out.token));
-  } catch {
-    return send(res, { error: "Could not read request." }, 400);
+  } catch (err) {
+    return send(res, { error: err?.message || "Could not read request." }, 400);
   }
 }
 
@@ -57,8 +65,8 @@ export async function handleBoard(req, res) {
     const body = await readBody(req);
     const out = await addScore(sessionToken(req), body.score);
     return send(res, out, out.error ? out.status : 200);
-  } catch {
-    return send(res, { error: "Could not read request." }, 400);
+  } catch (err) {
+    return send(res, { error: err?.message || "Could not read request." }, 400);
   }
 }
 
