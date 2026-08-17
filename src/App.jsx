@@ -383,15 +383,12 @@ export default function App() {
             <p className="tiny">Sayılar StandX public market, depth ve kline’dan. Vault TVL yok. Yatırım tavsiyesi değil.</p>
           </aside>
           )}
+          </div>
           <Leaderboard
-            symbols={overview?.symbols || []}
-            selected={selected}
-            onSelect={setSelected}
             user={user}
             gameScore={gameHud.score}
             playing={!!gameHud.running}
           />
-          </div>
         </div>
       )}
 

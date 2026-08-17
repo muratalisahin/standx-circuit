@@ -21,14 +21,15 @@ body {
 }
 
 .shell {
-  min-height: 100%;
-  min-height: 100dvh;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  padding: 14px 18px calc(12px + env(safe-area-inset-bottom));
-  padding-left: max(14px, env(safe-area-inset-left));
-  padding-right: max(14px, env(safe-area-inset-right));
-  gap: 10px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 10px 14px calc(8px + env(safe-area-inset-bottom));
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  gap: 8px;
   max-width: 1440px;
   margin: 0 auto;
 }
@@ -106,11 +107,12 @@ header.topHud {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  grid-template-rows: auto minmax(0, 1fr) minmax(220px, 34vh);
+  gap: 8px;
   min-height: 0;
+  overflow: hidden;
   background: #080c09;
-  padding: 10px;
+  padding: 8px;
   align-items: stretch;
 }
 .stampBar {
@@ -149,73 +151,68 @@ header.topHud {
   flex: 0 0 auto;
 }
 .board {
-  flex: 1 1 auto;
-  min-height: 260px;
-  border: 1px solid #2a5a3c;
-  background: var(--panel);
-  padding: 12px 14px 14px;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--green);
+  background: #0a1610;
+  padding: 10px 12px 12px;
+  box-shadow: 0 0 24px #31d66d22;
 }
 .boardHead {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
 }
-.boardHead strong { display: block; font-size: 18px; margin-top: 2px; }
-.boardTabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
+.boardHead strong {
+  display: block;
+  font-size: 22px;
+  letter-spacing: 0.12em;
+  color: var(--green);
 }
-.boardTabs button {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 12px;
-  min-height: 40px;
-  border: 1px solid var(--line);
-  background: #0a0f0c;
-  color: #cfe0d4;
-  cursor: pointer;
-}
-.boardTabs button.on { background: var(--green); color: #071109; border-color: var(--green); }
+.boardHead span { font-size: 15px; color: #e8f0ea; }
 .boardList {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 320px;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 .boardList button, .boardList .run {
   width: 100%;
   display: grid;
-  grid-template-columns: 28px 1fr auto auto;
+  grid-template-columns: 44px 1fr auto;
   gap: 10px;
   align-items: center;
   text-align: left;
-  background: #0a0f0c;
+  padding: 10px 12px;
+  min-height: 48px;
   border: 1px solid var(--line);
+  background: #07110c;
   color: inherit;
-  padding: 8px 10px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
+  font: inherit;
 }
 .boardList .run { cursor: default; }
 .boardList .run.on { border-color: var(--green); background: #102018; }
 .boardList button.on { border-color: var(--green); background: #102018; }
 .boardList em {
   font-style: normal;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 22px;
   color: var(--green);
   font-variant-numeric: tabular-nums;
 }
-.boardList strong { font-variant-numeric: tabular-nums; }
+.boardList b { font-size: 17px; }
+.boardList strong { font-variant-numeric: tabular-nums; font-size: 18px; }
 .boardList .empty { padding: 10px; color: #c5d0c8; }
 .boardName {
   display: flex;
@@ -887,7 +884,8 @@ dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 12px; }
 .authCard .hudPlay { width: 100%; margin-top: 4px; }
 .authCard .modeSwitch { margin-top: 8px; grid-column: auto; width: 100%; }
 
-footer { text-align: center; padding: 8px 4px 4px; }
+footer { text-align: center; padding: 2px 4px 0; font-size: 12px; }
+.anatomy { display: none; }
 
 @media (max-width: 1100px) {
   .workspace { grid-template-columns: minmax(0, 1fr) 260px; }
@@ -897,11 +895,11 @@ footer { text-align: center; padding: 8px 4px 4px; }
 
 @media (max-width: 860px) {
   .shell {
-    height: auto;
-    min-height: 100dvh;
-    grid-template-rows: auto auto auto auto;
-    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    gap: 8px;
+    height: 100dvh;
+    overflow: hidden;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    gap: 6px;
   }
   header { gap: 8px; }
   .line { display: none; }
@@ -909,15 +907,19 @@ footer { text-align: center; padding: 8px 4px 4px; }
   .live { font-size: 9px; width: auto; justify-self: end; }
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    padding: 8px;
+    grid-template-rows: auto minmax(0, 1fr) minmax(200px, 38vh);
+    overflow: hidden;
+    padding: 6px;
   }
   .stampBar { font-size: 8px; letter-spacing: 0.08em; }
-  .stageCol, .inspector, .sideCol { grid-row: auto; max-height: none; }
+  .sideCol { display: none; }
+  .stageCol { grid-row: 2; }
+  .board { grid-row: 3; }
   .stage {
     max-width: 100%;
-    aspect-ratio: 16 / 10;
-    min-height: 280px;
+    aspect-ratio: auto;
+    min-height: 0;
+    height: 100%;
   }
   .coreStats { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
   .coreStats div { padding: 8px 8px; }
