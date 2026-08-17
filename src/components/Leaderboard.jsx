@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import Stander from "./Stander.jsx";
 import { fetchBoard } from "../lib/session.js";
 
 export default function Leaderboard({ user, gameScore = 0, playing = false }) {
@@ -49,6 +50,7 @@ export default function Leaderboard({ user, gameScore = 0, playing = false }) {
         </span>
       </div>
       {fail && <p className="boardYou authErr">{fail}</p>}
+      <div className="boardBody">
       <ol className="boardList">
         {players.length === 0 && <li className="empty">No players yet.</li>}
         {players.map((r) => (
@@ -61,6 +63,8 @@ export default function Leaderboard({ user, gameScore = 0, playing = false }) {
           </li>
         ))}
       </ol>
+      <Stander pose="cozy" className="boardMascot" alt="Stander" />
+      </div>
     </section>
   );
 }

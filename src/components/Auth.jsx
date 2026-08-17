@@ -25,7 +25,7 @@ export default function Auth({ onIn }) {
     <div className="authShell">
       <div className="authCard">
         <img className="authLogo" src={LOGO} alt="StandX" />
-        <Stander pose="front" className="authMascot" />
+        <Stander pose="cozy" className="authMascot" />
         <h1>Sign in</h1>
         <p className="authAsk">Enter your X username.</p>
         <p>The browser saves this person. Next visit opens the same account.</p>

@@ -310,7 +310,7 @@ export default function Raid({ overview, book, selected, onSip, sip, running, se
         <div className="raidIntro">
           <div className="raidCast">
             <img src={LOGO} alt="StandX" />
-            <Stander pose="front" alt="" />
+            <Stander pose="cozy" alt="" />
           </div>
           <p>
             1) You are in <em>PLAY</em>. 2) Hit green <em>START</em>.

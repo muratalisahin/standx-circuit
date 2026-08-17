@@ -179,6 +179,23 @@ header.topHud {
   color: var(--green);
 }
 .boardHead span { font-size: 15px; color: #e8f0ea; }
+.boardBody {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 10px;
+  align-items: stretch;
+}
+.boardMascot {
+  height: 100%;
+  max-height: 118px;
+  width: auto;
+  justify-self: center;
+  align-self: center;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px #31d66d44);
+}
 .boardList {
   list-style: none;
   margin: 0;

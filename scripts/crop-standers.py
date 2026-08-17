@@ -3,7 +3,7 @@ from shutil import copy2
 from PIL import Image
 
 src = Path(
-    r"C:\Users\Murat\.cursor\projects\c-Users-Murat-Desktop-standx-circuit\assets\c__Users_Murat_AppData_Roaming_Cursor_User_workspaceStorage_5d1e4a4d9f469dfe9e17ed9dbfc83e32_images_standximge-c4dd812d-e8cb-4238-92f8-a4d4fc201a4b.png"
+    r"C:\Users\Murat\.cursor\projects\c-Users-Murat-Desktop-standx-circuit\assets\c__Users_Murat_AppData_Roaming_Cursor_User_workspaceStorage_5d1e4a4d9f469dfe9e17ed9dbfc83e32_images_standximge-6ef7b65b-7848-4819-80e1-696468c82106.png"
 )
 root = Path(__file__).resolve().parents[1]
 out = root / "public" / "images"

@@ -18,7 +18,7 @@ export default function Stander({ pose = "front", className = "", alt = "Stander
 
 export function standerPose({ running, over, flash, kind, rankId }) {
   if (over) return rankId === "UNIVERSAL" ? "formal" : "think";
-  if (!running) return "front";
+  if (!running) return "cozy";
   if (flash?.includes("LOCKED")) return "cozy";
   if (flash?.includes("WRONG") || flash?.includes("TIMEOUT")) return "think";
   if (kind?.includes("BOSS")) return "formal";
