@@ -315,6 +315,7 @@ export default function App() {
             </p>
           </div>
 
+          <div className="sideCol">
           {mode === "raid" ? (
             <Raid
               overview={overview}
@@ -390,6 +391,7 @@ export default function App() {
             gameScore={gameHud.score}
             playing={!!gameHud.running}
           />
+          </div>
         </div>
       )}
 

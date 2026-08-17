@@ -7,6 +7,16 @@ export default function Leaderboard({ symbols = [], selected, onSelect, user, ga
   const [tab, setTab] = useState("oyun");
   const [board, setBoard] = useState({ top: [], recent: [], users: 0 });
   const [tape, setTape] = useState([]);
+  const [fail, setFail] = useState("");
+
+  const players = useMemo(() => {
+    const top = [...(board.top || [])];
+    if (user?.name && !top.some((r) => r.name.toLowerCase() === user.name.toLowerCase())) {
+      top.push({ name: user.name, score: Number(gameScore) || 0, at: Date.now() });
+    }
+    top.sort((a, b) => (b.score || 0) - (a.score || 0) || (b.at || 0) - (a.at || 0));
+    return top.map((r, i) => ({ ...r, rank: i + 1 }));
+  }, [board.top, user?.name, gameScore]);
 
   const ranked = useMemo(() => {
     const rows = [...symbols];
@@ -23,9 +33,12 @@ export default function Leaderboard({ symbols = [], selected, onSelect, user, ga
     const pull = async () => {
       try {
         const j = await fetchBoard();
-        if (!stop && j?.board) setBoard(j.board);
+        if (!stop && j?.board) {
+          setBoard(j.board);
+          setFail("");
+        }
       } catch {
-        /* keep last */
+        if (!stop) setFail("Sunucu sıralamayı vermedi. Vercel’e Supabase anahtarları yazılmamış olabilir.");
       }
     };
     pull();
@@ -61,12 +74,12 @@ export default function Leaderboard({ symbols = [], selected, onSelect, user, ga
     <section className="board">
       <div className="boardHead">
         <div>
-          <span className="kicker">LİDERLİK</span>
-          <strong>Giriş yapanlar</strong>
+          <span className="kicker">SIRALAMA</span>
+          <strong>Oyuncu tablosu</strong>
         </div>
         <div className="live">
           <i />
-          2.5s · perps.standx.com
+          canlı
         </div>
       </div>
 
@@ -104,15 +117,16 @@ export default function Leaderboard({ symbols = [], selected, onSelect, user, ga
 
       {tab === "oyun" && (
         <div className="boardGame">
+          {fail && <p className="boardYou authErr">{fail}</p>}
           <p className="boardYou">
             Sen: <b>@{user?.name || "—"}</b>
             {playing ? ` · bu koşu ${gameScore} puan` : ""}
             {" · "}
-            {board.users} kişi giriş yaptı
+            {Math.max(board.users, players.length)} kişi
           </p>
           <ol className="boardList">
-            {board.top.length === 0 && <li className="empty">Henüz kimse giriş yapmadı.</li>}
-            {board.top.map((r) => (
+            {players.length === 0 && <li className="empty">Henüz kimse yok.</li>}
+            {players.map((r) => (
               <li key={`${r.rank}-${r.name}`}>
                 <div className={`run ${r.name === user?.name ? "on" : ""}`}>
                   <em>{r.rank}</em>
