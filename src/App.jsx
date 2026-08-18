@@ -1,14 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import Arena3D from "./components/Arena3D.jsx";
+import Circuit from "./components/Circuit.jsx";
 import DepthXray from "./components/DepthXray.jsx";
 import Anatomy from "./components/Anatomy.jsx";
 import Spark from "./components/Spark.jsx";
-import Leaderboard from "./components/Leaderboard.jsx";
-import Auth from "./components/Auth.jsx";
-import Raid from "./components/Raid.jsx";
-import Stander, { LOGO } from "./components/Stander.jsx";
-import { logout, restoreSession, getUser } from "./lib/session.js";
 import { depthUrl, fetchJson, klineUrl, marketUrl, parseDepth, parseKlines } from "./lib/api.js";
 import { layoutCircuit } from "./lib/circuitLayout.js";
 import { bps, funding, money, pct, px } from "./lib/format.js";
@@ -29,25 +24,6 @@ export default function App() {
   const [syncedAt, setSyncedAt] = useState(null);
   const [clock, setClock] = useState(() => new Date());
   const [ticks, setTicks] = useState({});
-  const [mode, setMode] = useState("watch");
-  const [raidOn, setRaidOn] = useState(false);
-  const raidHit = useRef(() => {});
-  const raidView = useRef({});
-  const [hudEl, setHudEl] = useState(null);
-  const [gameHud, setGameHud] = useState(() => ({
-    score: 0,
-    best: 0,
-    running: false,
-    over: false,
-  }));
-  const [user, setUser] = useState(() => getUser());
-  const [authReady, setAuthReady] = useState(false);
-
-  useEffect(() => {
-    restoreSession()
-      .then((u) => setUser(u))
-      .finally(() => setAuthReady(true));
-  }, []);
 
   useEffect(() => {
     const el = stageRef.current;
@@ -55,8 +31,8 @@ export default function App() {
     const measure = () => {
       const r = el.getBoundingClientRect();
       const w = Math.max(260, Math.round(r.width));
-      const h = Math.max(180, Math.round(r.height || r.width));
-      setSize((prev) => (Math.abs(prev.w - w) < 8 && Math.abs(prev.h - h) < 8 ? prev : { w, h }));
+      const h = Math.max(260, Math.round(r.height || r.width));
+      setSize({ w, h });
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -161,24 +137,19 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (!overview?.symbols?.length) return;
-      if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
+      if (e.target.tagName === "INPUT") return;
       const ordered = layout?.nodes.map((n) => n.symbol) || overview.symbols.map((s) => s.symbol);
-      const pick = (sym) => {
-        if (!sym) return;
-        setSelected(sym);
-        if (mode === "raid" && raidOn) raidHit.current({ kind: "mod", symbol: sym });
-      };
       if (e.key >= "1" && e.key <= "9") {
         const i = Number(e.key) - 1;
-        if (ordered[i]) pick(ordered[i]);
+        if (ordered[i]) setSelected(ordered[i]);
       }
-      if (e.key === "0" && ordered[9]) pick(ordered[9]);
-      if ((e.key === "-" || e.key === "_") && ordered[10]) pick(ordered[10]);
-      if (e.key === "Escape" && mode !== "raid") setSelected(ordered[0]);
+      if (e.key === "0" && ordered[9]) setSelected(ordered[9]);
+      if ((e.key === "-" || e.key === "_") && ordered[10]) setSelected(ordered[10]);
+      if (e.key === "Escape") setSelected(ordered[0]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [overview, layout, mode, raidOn]);
+  }, [overview, layout]);
 
   async function share() {
     if (!shotRef.current) return;
@@ -197,56 +168,23 @@ export default function App() {
   const summary = overview?.summary;
   const age = syncedAt ? Math.max(0, Math.round((clock - syncedAt) / 1000)) : null;
 
-  if (!authReady) {
-    return (
-      <div className="authShell">
-        <span>Checking session…</span>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Auth onIn={setUser} />;
-  }
-
   return (
     <div className="shell">
-      <header className="topHud">
+      <header>
         <div className="brand">
-          <img className="brandLogo" src={LOGO} alt="StandX" />
+          <img className="brandLogo" src="/images/standx-logo.png" alt="StandX" />
           STANDX <b>CIRCUIT</b>
         </div>
+        <p className="line">Watch the engine. DUSD core. Live StandX feed.</p>
         <div className="live">
           <i />
           LIVE · {clock.toLocaleTimeString()} · {age == null ? "SYNC" : age === 0 ? "NOW" : `${age}s`}
-        </div>
-        <div className="userBar">
-          <b>{user.name}</b>
-          <button
-            type="button"
-            onClick={() => {
-              logout().finally(() => {
-                setUser(null);
-                setRaidOn(false);
-              });
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-        <div className="modeSwitch" role="tablist" aria-label="Mode">
-          <button type="button" className={mode === "watch" ? "on" : ""} onClick={() => { setMode("watch"); setRaidOn(false); }}>
-            WATCH
-          </button>
-          <button type="button" className={mode === "raid" ? "on" : ""} onClick={() => setMode("raid")}>
-            PLAY
-          </button>
         </div>
       </header>
 
       {loading && (
         <div className="boot">
-          <Stander pose="think" className="bootMascot" alt="" />
+          <img className="bootMascot" src="/images/stander-think.png" alt="" />
           <span>SYNCING ENGINE</span>
         </div>
       )}
@@ -256,9 +194,9 @@ export default function App() {
       {!loading && !err && (
         <div className="workspace" ref={shotRef}>
           <div className="stampBar">
-            <img className="stampLogo" src={LOGO} alt="" />
+            <img className="stampLogo" src="/images/standx-logo.png" alt="" />
             <span>STANDX CIRCUIT</span>
-            <span>{mode === "raid" ? (raidOn ? "RAID LIVE" : "PLAY") : selected || "ENGINE"}</span>
+            <span>{selected || "ENGINE"}</span>
             <span>DUSD CORE · LIVE · NOT INVESTMENT ADVICE</span>
           </div>
           <div className="stageCol">
@@ -276,68 +214,26 @@ export default function App() {
                 <b className="soft">yield-bearing margin</b>
               </div>
             </div>
-            <div className="stage arenaStage" ref={stageRef}>
-              <Arena3D
+            <div className="stage" ref={stageRef}>
+              <Circuit
                 layout={layout}
                 selected={selected}
-                onSelect={(s) => {
-                  if (s) setSelected(s);
-                  if (mode === "raid" && raidOn) {
-                    raidHit.current(s ? { kind: "mod", symbol: s } : { kind: "core" });
-                  }
-                }}
+                onSelect={(s) => setSelected(s || selected)}
                 ticks={ticks}
                 sip={sip}
-                raid={mode === "raid"}
-                raidView={raidView}
                 imbalance={book?.imbalance}
               />
-              {(!raidOn || mode !== "raid") && (
-                <div className="stageHud">
-                  <button
-                    type="button"
-                    className="hudPlay"
-                    onClick={() => {
-                      setMode("raid");
-                      setRaidOn(true);
-                    }}
-                  >
-                    START RAID
-                  </button>
-                </div>
-              )}
-              <div className="stageQuestMount" ref={setHudEl} />
             </div>
-            <p className="keys">
-              {mode === "raid"
-                ? "Drag: orbit camera · TRUE / FALSE or SIP chips · C = core"
-                : "Drag: orbit camera · click: select a market"}
-            </p>
+            <p className="keys">2.5s markets · 2s book · tap a module · SIP lights a layer</p>
           </div>
 
-          <div className="sideCol">
-          {mode === "raid" ? (
-            <Raid
-              overview={overview}
-              book={book}
-              selected={selected}
-              onSip={setSip}
-              sip={sip}
-              running={raidOn}
-              setRunning={setRaidOn}
-              hitRef={raidHit}
-              viewRef={raidView}
-              hudEl={hudEl}
-              onScore={setGameHud}
-            />
-          ) : (
           <aside className="inspector">
             <div className="inspectHead">
               <div>
                 <span className="kicker">LIVE MODULE</span>
                 <h2>{market?.symbol || "—"}</h2>
               </div>
-              <Stander pose="focus" className="inspectMascot" alt="" />
+              <img className="inspectMascot" src="/images/stander-focus.png" alt="" />
             </div>
             <div className="markRow">
               <strong>{px(market?.mark_price || market?.last_price)}</strong>
@@ -380,22 +276,15 @@ export default function App() {
             <button type="button" className="share" onClick={() => { setSharing(true); setTimeout(share, 40); }}>
               STAMP CIRCUIT PNG
             </button>
-            <p className="tiny">Figures from StandX public market, depth, and kline. No vault TVL. Not investment advice.</p>
+            <p className="tiny">Live numbers from StandX public market, depth and kline. No vault TVL. Not investment advice.</p>
           </aside>
-          )}
-          </div>
-          <Leaderboard
-            user={user}
-            gameScore={gameHud.score}
-            playing={!!gameHud.running}
-          />
         </div>
       )}
 
       <Anatomy open={sip} onOpen={setSip} />
       <footer>
-        <Stander pose="three" className="footMascot" alt="" />
-        StandX Circuit · {mode === "raid" ? "raid on the live ring" : "DUSD core · protocol map, not a vault explorer"} · not investment advice
+        <img className="footMascot" src="/images/stander-34.png" alt="" />
+        StandX Circuit · Stander on DUSD · protocol map, not a vault explorer · not investment advice
         {sharing ? " · rendering stamp…" : ""}
       </footer>
     </div>

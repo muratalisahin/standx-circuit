@@ -1,9 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { authPlugin } from "./server/http.js";
 
 export default defineConfig({
-  plugins: [react(), authPlugin()],
+  plugins: [react()],
   server: {
     proxy: {
       "/standx-api": {

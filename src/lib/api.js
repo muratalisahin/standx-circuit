@@ -40,12 +40,6 @@ function wall(levels) {
   return best ? { price: best, usd } : null;
 }
 
-export function tradesUrl(symbol) {
-  return import.meta.env.DEV
-    ? `/standx-api/api/query_recent_trades?symbol=${encodeURIComponent(symbol)}`
-    : `/api/trades?symbol=${encodeURIComponent(symbol)}`;
-}
-
 export async function fetchJson(url) {
   const r = await fetch(url, { cache: "no-store" });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
